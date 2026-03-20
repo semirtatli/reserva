@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Reservera.Models;
 
 namespace Reservera.Controllers;
 
@@ -9,6 +10,6 @@ public class ReservationsController : ControllerBase
     [HttpGet]
     public IActionResult GetAll()
     {
-        return Ok(Array.Empty<object>());
+        return Ok(new List<Reservation>());
     }
 }
