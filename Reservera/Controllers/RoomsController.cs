@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Reservera.Models;
+using Reservera.Repositories;
 
 namespace Reservera.Controllers;
 
@@ -7,16 +8,34 @@ namespace Reservera.Controllers;
 [Route("[controller]")]
 public class RoomsController : ControllerBase
 {
+    private readonly RoomRepository _repository = new();
+
     [HttpGet]
     public IActionResult GetAll()
     {
-        var rooms = new List<Room>
-        {
-            new() { Id = 1, Name = "Deniz Manzaralı Suite", Description = "Muhteşem deniz manzarası", PricePerNight = 250.00m, Capacity = 2 },
-            new() { Id = 2, Name = "Bahçe Odası", Description = "Sakin bahçe görünümlü oda", PricePerNight = 120.00m, Capacity = 2 },
-            new() { Id = 3, Name = "Aile Odası", Description = "Geniş aile odası", PricePerNight = 180.00m, Capacity = 4 }
-        };
+        return Ok(_repository.GetAll());
+    }
 
-        return Ok(rooms);
+    [HttpGet("{id}")]
+    public IActionResult GetById(int id)
+    {
+        var room = _repository.GetById(id);
+        if (room is null) return NotFound();
+        return Ok(room);
+    }
+
+    [HttpPost]
+    public IActionResult Create(Room room)
+    {
+        var created = _repository.Add(room);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult Delete(int id)
+    {
+        var deleted = _repository.Delete(id);
+        if (!deleted) return NotFound();
+        return NoContent();
     }
 }
