@@ -1,11 +1,11 @@
-using Reservera.Models;
+using Reservera.DTOs;
 
 namespace Reservera.Services;
 
 public interface IReservationService
 {
-    Task<List<Reservation>> GetAll();
-    Task<Reservation> GetById(int id);
-    Task<Reservation> Create(Reservation reservation);
+    Task<List<ReservationResponse>> GetAll();
+    Task<ReservationResponse> GetById(int id);
+    Task<ReservationResponse> Create(CreateReservationRequest request);
     Task Cancel(int id);
 }

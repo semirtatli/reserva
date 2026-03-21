@@ -1,11 +1,11 @@
-using Reservera.Models;
+using Reservera.DTOs;
 
 namespace Reservera.Services;
 
 public interface IRoomService
 {
-    Task<List<Room>> GetAll();
-    Task<Room> GetById(int id);
-    Task<Room> Create(Room room);
+    Task<List<RoomResponse>> GetAll();
+    Task<RoomResponse> GetById(int id);
+    Task<RoomResponse> Create(CreateRoomRequest request);
     Task Delete(int id);
 }

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Reservera.Models;
+using Reservera.DTOs;
 using Reservera.Services;
 
 namespace Reservera.Controllers;
@@ -24,9 +24,9 @@ public class RoomsController : ControllerBase
         => Ok(await _service.GetById(id));
 
     [HttpPost]
-    public async Task<IActionResult> Create(Room room)
+    public async Task<IActionResult> Create(CreateRoomRequest request)
     {
-        var created = await _service.Create(room);
+        var created = await _service.Create(request);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 

@@ -1,9 +1,9 @@
 using FluentValidation;
-using Reservera.Models;
+using Reservera.DTOs;
 
 namespace Reservera.Validators;
 
-public class CreateReservationValidator : AbstractValidator<Reservation>
+public class CreateReservationValidator : AbstractValidator<CreateReservationRequest>
 {
     public CreateReservationValidator()
     {
