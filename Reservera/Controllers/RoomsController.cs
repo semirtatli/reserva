@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Reservera.Exceptions;
 using Reservera.Models;
 using Reservera.Services;
 
@@ -22,16 +21,7 @@ public class RoomsController : ControllerBase
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
-    {
-        try
-        {
-            return Ok(await _service.GetById(id));
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-    }
+        => Ok(await _service.GetById(id));
 
     [HttpPost]
     public async Task<IActionResult> Create(Room room)
@@ -43,14 +33,7 @@ public class RoomsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        try
-        {
-            await _service.Delete(id);
-            return NoContent();
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _service.Delete(id);
+        return NoContent();
     }
 }

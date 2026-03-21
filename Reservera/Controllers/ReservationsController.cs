@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Reservera.Exceptions;
 using Reservera.Models;
 using Reservera.Services;
 
@@ -22,46 +21,19 @@ public class ReservationsController : ControllerBase
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
-    {
-        try
-        {
-            return Ok(await _service.GetById(id));
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-    }
+        => Ok(await _service.GetById(id));
 
     [HttpPost]
     public async Task<IActionResult> Create(Reservation reservation)
     {
-        try
-        {
-            var created = await _service.Create(reservation);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (RoomNotAvailableException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        var created = await _service.Create(reservation);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpPatch("{id}/cancel")]
     public async Task<IActionResult> Cancel(int id)
     {
-        try
-        {
-            await _service.Cancel(id);
-            return NoContent();
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _service.Cancel(id);
+        return NoContent();
     }
 }
