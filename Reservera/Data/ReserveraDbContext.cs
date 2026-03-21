@@ -14,20 +14,6 @@ public class ReserveraDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Room>(entity =>
-        {
-            entity.HasKey(r => r.Id);
-            entity.Property(r => r.Name).IsRequired().HasMaxLength(100);
-            entity.Property(r => r.Description).HasMaxLength(500);
-            entity.Property(r => r.PricePerNight).HasPrecision(18, 2);
-        });
-
-        modelBuilder.Entity<Reservation>(entity =>
-        {
-            entity.HasKey(r => r.Id);
-            entity.Property(r => r.GuestName).IsRequired().HasMaxLength(100);
-            entity.Property(r => r.TotalPrice).HasPrecision(18, 2);
-            entity.Property(r => r.Status).HasConversion<string>();
-        });
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ReserveraDbContext).Assembly);
     }
 }
