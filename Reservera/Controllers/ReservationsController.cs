@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Reservera.DTOs;
 using Reservera.Services;
@@ -6,6 +7,7 @@ namespace Reservera.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class ReservationsController : ControllerBase
 {
     private readonly IReservationService _service;
