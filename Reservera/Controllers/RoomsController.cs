@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Reservera.Data;
+using Reservera.Exceptions;
 using Reservera.Models;
 using Reservera.Repositories;
+using Reservera.Services;
 
 namespace Reservera.Controllers;
 
@@ -9,37 +11,48 @@ namespace Reservera.Controllers;
 [Route("[controller]")]
 public class RoomsController : ControllerBase
 {
-    private readonly RoomRepository _repository;
+    private readonly RoomService _service;
 
     public RoomsController(ReserveraDbContext context)
     {
-        _repository = new RoomRepository(context);
+        _service = new RoomService(new RoomRepository(context));
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
-        => Ok(await _repository.GetAll());
+        => Ok(await _service.GetAll());
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var room = await _repository.GetById(id);
-        if (room is null) return NotFound();
-        return Ok(room);
+        try
+        {
+            return Ok(await _service.GetById(id));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 
     [HttpPost]
     public async Task<IActionResult> Create(Room room)
     {
-        var created = await _repository.Add(room);
+        var created = await _service.Create(room);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _repository.Delete(id);
-        if (!deleted) return NotFound();
-        return NoContent();
+        try
+        {
+            await _service.Delete(id);
+            return NoContent();
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 }
