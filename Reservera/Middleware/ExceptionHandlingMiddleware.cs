@@ -26,6 +26,10 @@ public class ExceptionHandlingMiddleware
         {
             await WriteError(context, StatusCodes.Status409Conflict, ex.Message);
         }
+        catch (BadRequestException ex)
+        {
+            await WriteError(context, StatusCodes.Status400BadRequest, ex.Message);
+        }
         catch (Exception ex)
         {
             await WriteError(context, StatusCodes.Status500InternalServerError, "Beklenmeyen bir hata oluştu: " + ex.Message);
