@@ -4,11 +4,11 @@ using Reservera.Repositories;
 
 namespace Reservera.Services;
 
-public class RoomService
+public class RoomService : IRoomService
 {
-    private readonly RoomRepository _repository;
+    private readonly IRoomRepository _repository;
 
-    public RoomService(RoomRepository repository)
+    public RoomService(IRoomRepository repository)
     {
         _repository = repository;
     }

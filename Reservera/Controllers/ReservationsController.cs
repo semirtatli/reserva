@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Reservera.Data;
 using Reservera.Exceptions;
 using Reservera.Models;
-using Reservera.Repositories;
 using Reservera.Services;
 
 namespace Reservera.Controllers;
@@ -11,13 +9,11 @@ namespace Reservera.Controllers;
 [Route("[controller]")]
 public class ReservationsController : ControllerBase
 {
-    private readonly ReservationService _service;
+    private readonly IReservationService _service;
 
-    public ReservationsController(ReserveraDbContext context)
+    public ReservationsController(IReservationService service)
     {
-        _service = new ReservationService(
-            new ReservationRepository(context),
-            new RoomRepository(context));
+        _service = service;
     }
 
     [HttpGet]

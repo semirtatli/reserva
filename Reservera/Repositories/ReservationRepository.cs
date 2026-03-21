@@ -4,7 +4,7 @@ using Reservera.Models;
 
 namespace Reservera.Repositories;
 
-public class ReservationRepository
+public class ReservationRepository : IReservationRepository
 {
     private readonly ReserveraDbContext _context;
 
