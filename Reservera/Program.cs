@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Reservera.Data;
 using Scalar.AspNetCore;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ReserveraDbContext>(options =>

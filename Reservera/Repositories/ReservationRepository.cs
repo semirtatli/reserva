@@ -1,40 +1,46 @@
+using Microsoft.EntityFrameworkCore;
+using Reservera.Data;
 using Reservera.Models;
 
 namespace Reservera.Repositories;
 
 public class ReservationRepository
 {
-    private static readonly List<Reservation> _reservations = new();
-    private static int _nextId = 1;
+    private readonly ReserveraDbContext _context;
 
-    public List<Reservation> GetAll() => _reservations;
-
-    public Reservation? GetById(int id) => _reservations.FirstOrDefault(r => r.Id == id);
-
-    public Reservation Add(Reservation reservation)
+    public ReservationRepository(ReserveraDbContext context)
     {
-        reservation.Id = _nextId++;
+        _context = context;
+    }
+
+    public async Task<List<Reservation>> GetAll()
+        => await _context.Reservations.ToListAsync();
+
+    public async Task<Reservation?> GetById(int id)
+        => await _context.Reservations.FindAsync(id);
+
+    public async Task<Reservation> Add(Reservation reservation)
+    {
         reservation.Status = ReservationStatus.Confirmed;
-        _reservations.Add(reservation);
+        _context.Reservations.Add(reservation);
+        await _context.SaveChangesAsync();
         return reservation;
     }
 
-    public bool Cancel(int id)
+    public async Task<bool> Cancel(int id)
     {
-        var reservation = GetById(id);
+        var reservation = await GetById(id);
         if (reservation is null) return false;
 
         reservation.Status = ReservationStatus.Cancelled;
+        await _context.SaveChangesAsync();
         return true;
     }
 
-    // Verilen oda ve tarih aralığında çakışan rezervasyon var mı?
-    public bool HasOverlap(int roomId, DateTime checkIn, DateTime checkOut)
-    {
-        return _reservations.Any(r =>
+    public async Task<bool> HasOverlap(int roomId, DateTime checkIn, DateTime checkOut)
+        => await _context.Reservations.AnyAsync(r =>
             r.RoomId == roomId &&
             r.Status == ReservationStatus.Confirmed &&
             r.CheckIn < checkOut &&
             r.CheckOut > checkIn);
-    }
 }

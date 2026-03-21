@@ -1,32 +1,34 @@
+using Microsoft.EntityFrameworkCore;
+using Reservera.Data;
 using Reservera.Models;
 
 namespace Reservera.Repositories;
 
 public class RoomRepository
 {
-    private static readonly List<Room> _rooms = new()
+    private readonly ReserveraDbContext _context;
+
+    public RoomRepository(ReserveraDbContext context)
     {
-        new() { Id = 1, Name = "Deniz Manzaralı Suite", Description = "Muhteşem deniz manzarası", PricePerNight = 250.00m, Capacity = 2 },
-        new() { Id = 2, Name = "Bahçe Odası", Description = "Sakin bahçe görünümlü oda", PricePerNight = 120.00m, Capacity = 2 },
-        new() { Id = 3, Name = "Aile Odası", Description = "Geniş aile odası", PricePerNight = 180.00m, Capacity = 4 }
-    };
+        _context = context;
+    }
 
-    private static int _nextId = 4;
+    public async Task<List<Room>> GetAll()
+        => await _context.Rooms.ToListAsync();
 
-    public List<Room> GetAll() => _rooms;
+    public async Task<Room?> GetById(int id)
+        => await _context.Rooms.FindAsync(id);
 
-    public Room? GetById(int id) => _rooms.FirstOrDefault(r => r.Id == id);
-
-    public Room Add(Room room)
+    public async Task<Room> Add(Room room)
     {
-        room.Id = _nextId++;
-        _rooms.Add(room);
+        _context.Rooms.Add(room);
+        await _context.SaveChangesAsync();
         return room;
     }
 
-    public Room? Update(Room updated)
+    public async Task<Room?> Update(Room updated)
     {
-        var existing = GetById(updated.Id);
+        var existing = await GetById(updated.Id);
         if (existing is null) return null;
 
         existing.Name = updated.Name;
@@ -34,15 +36,17 @@ public class RoomRepository
         existing.PricePerNight = updated.PricePerNight;
         existing.Capacity = updated.Capacity;
 
+        await _context.SaveChangesAsync();
         return existing;
     }
 
-    public bool Delete(int id)
+    public async Task<bool> Delete(int id)
     {
-        var room = GetById(id);
+        var room = await GetById(id);
         if (room is null) return false;
 
-        _rooms.Remove(room);
+        _context.Rooms.Remove(room);
+        await _context.SaveChangesAsync();
         return true;
     }
 }

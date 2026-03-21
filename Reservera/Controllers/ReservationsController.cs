@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Reservera.Data;
 using Reservera.Models;
 using Reservera.Repositories;
 
@@ -8,45 +9,48 @@ namespace Reservera.Controllers;
 [Route("[controller]")]
 public class ReservationsController : ControllerBase
 {
-    private readonly RoomRepository _roomRepository = new();
-    private readonly ReservationRepository _reservationRepository = new();
+    private readonly RoomRepository _roomRepository;
+    private readonly ReservationRepository _reservationRepository;
 
-    [HttpGet]
-    public IActionResult GetAll()
+    public ReservationsController(ReserveraDbContext context)
     {
-        return Ok(_reservationRepository.GetAll());
+        _roomRepository = new RoomRepository(context);
+        _reservationRepository = new ReservationRepository(context);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+        => Ok(await _reservationRepository.GetAll());
+
     [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        var reservation = _reservationRepository.GetById(id);
+        var reservation = await _reservationRepository.GetById(id);
         if (reservation is null) return NotFound();
         return Ok(reservation);
     }
 
     [HttpPost]
-    public IActionResult Create(Reservation reservation)
+    public async Task<IActionResult> Create(Reservation reservation)
     {
-        var room = _roomRepository.GetById(reservation.RoomId);
+        var room = await _roomRepository.GetById(reservation.RoomId);
         if (room is null) return BadRequest("Oda bulunamadı.");
 
-        var hasOverlap = _reservationRepository.HasOverlap(
+        var hasOverlap = await _reservationRepository.HasOverlap(
             reservation.RoomId, reservation.CheckIn, reservation.CheckOut);
-
         if (hasOverlap) return Conflict("Bu oda seçilen tarihlerde dolu.");
 
         var nights = (reservation.CheckOut - reservation.CheckIn).Days;
         reservation.TotalPrice = room.PricePerNight * nights;
 
-        var created = _reservationRepository.Add(reservation);
+        var created = await _reservationRepository.Add(reservation);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpPatch("{id}/cancel")]
-    public IActionResult Cancel(int id)
+    public async Task<IActionResult> Cancel(int id)
     {
-        var cancelled = _reservationRepository.Cancel(id);
+        var cancelled = await _reservationRepository.Cancel(id);
         if (!cancelled) return NotFound();
         return NoContent();
     }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Reservera.Data;
 using Reservera.Models;
 using Reservera.Repositories;
 
@@ -8,33 +9,36 @@ namespace Reservera.Controllers;
 [Route("[controller]")]
 public class RoomsController : ControllerBase
 {
-    private readonly RoomRepository _repository = new();
+    private readonly RoomRepository _repository;
 
-    [HttpGet]
-    public IActionResult GetAll()
+    public RoomsController(ReserveraDbContext context)
     {
-        return Ok(_repository.GetAll());
+        _repository = new RoomRepository(context);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+        => Ok(await _repository.GetAll());
+
     [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        var room = _repository.GetById(id);
+        var room = await _repository.GetById(id);
         if (room is null) return NotFound();
         return Ok(room);
     }
 
     [HttpPost]
-    public IActionResult Create(Room room)
+    public async Task<IActionResult> Create(Room room)
     {
-        var created = _repository.Add(room);
+        var created = await _repository.Add(room);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        var deleted = _repository.Delete(id);
+        var deleted = await _repository.Delete(id);
         if (!deleted) return NotFound();
         return NoContent();
     }
