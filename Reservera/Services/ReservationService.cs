@@ -1,3 +1,4 @@
+using AutoMapper;
 using Reservera.DTOs;
 using Reservera.Exceptions;
 using Reservera.Models;
@@ -9,24 +10,29 @@ public class ReservationService : IReservationService
 {
     private readonly IReservationRepository _reservationRepository;
     private readonly IRoomRepository _roomRepository;
+    private readonly IMapper _mapper;
 
-    public ReservationService(IReservationRepository reservationRepository, IRoomRepository roomRepository)
+    public ReservationService(
+        IReservationRepository reservationRepository,
+        IRoomRepository roomRepository,
+        IMapper mapper)
     {
         _reservationRepository = reservationRepository;
         _roomRepository = roomRepository;
+        _mapper = mapper;
     }
 
     public async Task<List<ReservationResponse>> GetAll()
     {
         var reservations = await _reservationRepository.GetAll();
-        return reservations.Select(r => ToResponse(r)).ToList();
+        return _mapper.Map<List<ReservationResponse>>(reservations);
     }
 
     public async Task<ReservationResponse> GetById(int id)
     {
         var reservation = await _reservationRepository.GetById(id);
         if (reservation is null) throw new NotFoundException($"Id={id} olan rezervasyon bulunamadı.");
-        return ToResponse(reservation);
+        return _mapper.Map<ReservationResponse>(reservation);
     }
 
     public async Task<ReservationResponse> Create(CreateReservationRequest request)
@@ -39,18 +45,14 @@ public class ReservationService : IReservationService
         if (hasOverlap) throw new RoomNotAvailableException("Bu oda seçilen tarihlerde dolu.");
 
         var nights = (request.CheckOut - request.CheckIn).Days;
-
-        var reservation = new Reservation
-        {
-            RoomId = request.RoomId,
-            GuestName = request.GuestName,
-            CheckIn = request.CheckIn,
-            CheckOut = request.CheckOut,
-            TotalPrice = room.PricePerNight * nights
-        };
+        var reservation = _mapper.Map<Reservation>(request);
+        reservation.TotalPrice = room.PricePerNight * nights;
 
         var created = await _reservationRepository.Add(reservation);
-        return ToResponse(created, room.Name);
+
+        var response = _mapper.Map<ReservationResponse>(created);
+        response.RoomName = room.Name;
+        return response;
     }
 
     public async Task Cancel(int id)
@@ -58,16 +60,4 @@ public class ReservationService : IReservationService
         var cancelled = await _reservationRepository.Cancel(id);
         if (!cancelled) throw new NotFoundException($"Id={id} olan rezervasyon bulunamadı.");
     }
-
-    private static ReservationResponse ToResponse(Reservation r, string roomName = "") => new()
-    {
-        Id = r.Id,
-        RoomId = r.RoomId,
-        RoomName = roomName,
-        GuestName = r.GuestName,
-        CheckIn = r.CheckIn,
-        CheckOut = r.CheckOut,
-        TotalPrice = r.TotalPrice,
-        Status = r.Status.ToString()
-    };
 }
