@@ -22,9 +22,9 @@ public class ReservationService : IReservationService
         _mapper = mapper;
     }
 
-    public async Task<List<ReservationResponse>> GetAll()
+    public async Task<List<ReservationResponse>> GetAll(int? userId = null)
     {
-        var reservations = await _reservationRepository.GetAll();
+        var reservations = await _reservationRepository.GetAll(userId);
         return _mapper.Map<List<ReservationResponse>>(reservations);
     }
 
@@ -35,7 +35,7 @@ public class ReservationService : IReservationService
         return _mapper.Map<ReservationResponse>(reservation);
     }
 
-    public async Task<ReservationResponse> Create(CreateReservationRequest request)
+    public async Task<ReservationResponse> Create(CreateReservationRequest request, int userId)
     {
         var room = await _roomRepository.GetById(request.RoomId);
         if (room is null) throw new NotFoundException($"Id={request.RoomId} olan oda bulunamadı.");
@@ -46,6 +46,7 @@ public class ReservationService : IReservationService
 
         var nights = (request.CheckOut - request.CheckIn).Days;
         var reservation = _mapper.Map<Reservation>(request);
+        reservation.UserId = userId;
         reservation.TotalPrice = room.PricePerNight * nights;
 
         var created = await _reservationRepository.Add(reservation);
@@ -55,9 +56,14 @@ public class ReservationService : IReservationService
         return response;
     }
 
-    public async Task Cancel(int id)
+    public async Task Cancel(int id, int userId, bool isAdmin)
     {
-        var cancelled = await _reservationRepository.Cancel(id);
-        if (!cancelled) throw new NotFoundException($"Id={id} olan rezervasyon bulunamadı.");
+        var reservation = await _reservationRepository.GetById(id);
+        if (reservation is null) throw new NotFoundException($"Id={id} olan rezervasyon bulunamadı.");
+
+        if (!isAdmin && reservation.UserId != userId)
+            throw new ForbiddenException("Bu rezervasyonu iptal etme yetkiniz yok.");
+
+        await _reservationRepository.Cancel(id);
     }
 }

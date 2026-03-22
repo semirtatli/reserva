@@ -13,8 +13,13 @@ public class ReservationRepository : IReservationRepository
         _context = context;
     }
 
-    public async Task<List<Reservation>> GetAll()
-        => await _context.Reservations.ToListAsync();
+    public async Task<List<Reservation>> GetAll(int? userId = null)
+    {
+        var query = _context.Reservations.AsQueryable();
+        if (userId.HasValue)
+            query = query.Where(r => r.UserId == userId.Value);
+        return await query.ToListAsync();
+    }
 
     public async Task<Reservation?> GetById(int id)
         => await _context.Reservations.FindAsync(id);

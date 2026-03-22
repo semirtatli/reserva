@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Reservera.DTOs;
@@ -19,7 +20,11 @@ public class ReservationsController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
-        => Ok(await _service.GetAll());
+    {
+        var isAdmin = User.IsInRole("Admin");
+        var userId = isAdmin ? (int?)null : GetUserId();
+        return Ok(await _service.GetAll(userId));
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
@@ -28,14 +33,18 @@ public class ReservationsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateReservationRequest request)
     {
-        var created = await _service.Create(request);
+        var created = await _service.Create(request, GetUserId());
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpPatch("{id}/cancel")]
     public async Task<IActionResult> Cancel(int id)
     {
-        await _service.Cancel(id);
+        var isAdmin = User.IsInRole("Admin");
+        await _service.Cancel(id, GetUserId(), isAdmin);
         return NoContent();
     }
+
+    private int GetUserId()
+        => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 }

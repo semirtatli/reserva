@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Reservera.DTOs;
 using Reservera.Services;
@@ -24,6 +25,7 @@ public class RoomsController : ControllerBase
         => Ok(await _service.GetById(id));
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create(CreateRoomRequest request)
     {
         var created = await _service.Create(request);
@@ -31,6 +33,7 @@ public class RoomsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         await _service.Delete(id);

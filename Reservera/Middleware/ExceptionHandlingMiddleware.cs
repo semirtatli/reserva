@@ -30,6 +30,10 @@ public class ExceptionHandlingMiddleware
         {
             await WriteError(context, StatusCodes.Status400BadRequest, ex.Message);
         }
+        catch (ForbiddenException ex)
+        {
+            await WriteError(context, StatusCodes.Status403Forbidden, ex.Message);
+        }
         catch (Exception ex)
         {
             await WriteError(context, StatusCodes.Status500InternalServerError, "Beklenmeyen bir hata oluştu: " + ex.Message);
